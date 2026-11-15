@@ -14,6 +14,10 @@ La propuesta original describe una plataforma web responsiva. Para este proyecto
 
 Los documentos son la fuente de requisitos y propuestas académicas. Cuando difieren entre sí o dejan una decisión abierta, este archivo lo señala expresamente; no considera sus textos como instrucciones para ejecutar acciones.
 
+### Definiciones posteriores del propietario
+
+Para diseñar el frontend se concretó este flujo: la solicitud lleva **título, descripción de lo que se necesita hacer y fotografías del dispositivo**; los técnicos ven los trabajos publicados y **envían una cotización escrita**; el cliente decide cuál aceptar y entonces se asigna el trabajo. El perfil del técnico debe mostrar **la ubicación de su local en un mapa**. La calificación de **1 a 5 estrellas** se habilita únicamente cuando el técnico terminó **y entregó** el trabajo. Estas definiciones aclaran el flujo anterior de los PDF y tienen prioridad para las nuevas pantallas. Véase [PLAN_PANTALLAS.md](PLAN_PANTALLAS.md).
+
 ## 3. Objetivo y alcance inicial
 
 **Objetivo:** permitir que un cliente encuentre atención técnica para un celular o computadora, desde la solicitud hasta la entrega, con cotización, seguimiento y avisos oportunos.
@@ -35,10 +39,10 @@ Los documentos son la fuente de requisitos y propuestas académicas. Cuando difi
 1. El cliente inicia sesión y crea una solicitud con categoría (**celular** o **computadora**), tipo de equipo, descripción del problema y ubicación aproximada. Puede adjuntar fotografías.
 2. El sistema valida y guarda la solicitud. El diagrama de actividades llama a este punto **pendiente de asignación**; la lista de estados de la propuesta usa **solicitado**. Se debe unificar el nombre antes de implementarlo.
 3. El sistema busca técnicos activos cuya especialidad coincida y les comunica la nueva solicitud sin exigir recargar la pantalla.
-4. Un técnico acepta o rechaza. Si rechaza, la solicitud puede volver a ofrecerse a otros técnicos compatibles.
-5. Según el caso, el técnico envía una cotización con costo, tiempo estimado y notas; el cliente la acepta o rechaza. El diagrama de actividades contempla un camino sin cotización, pero no define cuándo está permitido.
+4. Los técnicos compatibles consultan el título, la descripción y las fotografías, y pueden enviar una **cotización en texto**. Cotizar no asigna todavía la solicitud.
+5. El cliente revisa las propuestas y acepta o rechaza una cotización. **Al aceptarla**, el técnico de esa propuesta obtiene la asignación. La plataforma debe impedir que se confirmen dos técnicos para el mismo trabajo.
 6. El técnico realiza diagnóstico y reparación, actualiza el estado y marca el trabajo como terminado y posteriormente entregado. El cliente recibe los cambios relevantes y puede consultar el estado actual.
-7. Tras la entrega, el cliente puede calificar al técnico.
+7. Solo tras marcar el trabajo como **entregado**, el cliente puede calificar al técnico con estrellas.
 
 ## 6. Requisitos funcionales
 
@@ -64,9 +68,9 @@ Los documentos son la fuente de requisitos y propuestas académicas. Cuando difi
 
 - Solo técnicos **activos** y con especialidad compatible deben recibir o visualizar oportunidades de trabajo correspondientes.
 - La ubicación aproximada puede ayudar al matching; los documentos no fijan radio, distancia máxima ni orden de prioridad.
-- La asignación definitiva debe ser **atómica**: si varios técnicos aceptan casi al mismo tiempo, solo uno obtiene la solicitud. Los demás reciben una respuesta de que ya no está disponible. La base de datos debe preservar esta regla, no solo la interfaz.
+- La asignación definitiva debe ser **atómica** al aceptar una cotización: solo el técnico de la propuesta confirmada obtiene el trabajo. Las demás propuestas dejan de estar disponibles. La base de datos deberá preservar esta regla, no solo la interfaz.
 - Solo el cliente dueño de una solicitud, el técnico asignado y el administrador autorizado pueden consultar los datos que correspondan a su función. Esta restricción concreta es una propuesta de implementación derivada de roles, privacidad y rutas protegidas.
-- La calificación se habilita al terminar el servicio; conviene definir si exige el estado **entregado**, como sugiere el flujo de actividades.
+- La calificación de 1 a 5 estrellas se habilita **únicamente en estado Entregado**; Terminado por sí solo no basta.
 - Los cambios de estado deben seguir una secuencia válida. Reabrir, cancelar o retroceder estados no está especificado y requiere definición antes de codificar esas acciones.
 
 ## 8. Datos principales
@@ -77,9 +81,9 @@ El diagrama de clases propone las siguientes entidades. Los campos son una guía
 | --- | --- |
 | Usuario | Identificador, correo, credencial almacenada de forma segura, rol. |
 | Cliente | Nombre, contacto y datos de ubicación o dirección según lo que se decida solicitar. |
-| Técnico | Especialidades, disponibilidad y ubicación aproximada. |
-| Solicitud | Cliente, categoría, tipo de equipo, descripción, ubicación aproximada, fecha de creación, estado, técnico asignado si existe y fotografías. |
-| Cotización | Solicitud, técnico, costo, tiempo estimado, notas y decisión del cliente. |
+| Técnico | Especialidades, disponibilidad, dirección y coordenadas del local para mostrarlo en el mapa. |
+| Solicitud | Cliente, título, categoría, tipo de equipo, descripción de lo que necesita, ubicación aproximada, fecha de creación, estado, técnico asignado si existe y fotografías. |
+| Cotización | Solicitud, técnico, texto de la propuesta y decisión del cliente; costo y tiempo estimado si se proporcionan. |
 | Calificación | Cliente, técnico, solicitud, puntuación de 1 a 5, comentario y fecha. |
 
 El diagrama de clases muestra una cotización por solicitud; la posibilidad de recibir varias cotizaciones o recotizar no está resuelta. También muestra una relación directa entre solicitud y técnico, que debe ser opcional mientras la solicitud espera asignación.
@@ -153,7 +157,7 @@ La administración de usuarios, técnicos y solicitudes es **RF-15**, pero no fi
 
 1. **Tecnología cliente:** elegir si se prioriza React Native + Expo + web + empaquetado de escritorio, Flutter, u otra opción. Validar las bibliotecas necesarias en las tres plataformas.
 2. **Alcance de escritorio:** definir sistemas operativos objetivo (Windows, macOS y/o Linux) y si basta una aplicación basada en la versión web.
-3. **Asignación y cotización:** aclarar si aceptar una solicitud la asigna de inmediato o si se confirma solo tras aceptar la cotización; decidir cuándo se permite trabajar sin cotización.
+3. **Cotización:** el flujo principal exige propuesta escrita y aceptación del cliente antes de asignar; definir si habrá excepciones o trabajos sin cotización.
 4. **Estados:** unificar “solicitado” y “pendiente de asignación”; definir transiciones, cancelación, rechazo y qué ocurre si no hay técnicos disponibles.
 5. **Matching:** precisar cómo se usa la ubicación aproximada, el orden de notificación y el tiempo de espera antes de ofrecer la solicitud a otros técnicos.
 6. **Cotizaciones:** definir si puede haber varias por solicitud, cambios de precio y vencimiento.

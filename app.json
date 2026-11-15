@@ -4,7 +4,9 @@
     "slug": "fixgo",
     "version": "1.0.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
+    "scheme": "fixgo",
+    "plugins": ["expo-router"],
     "ios": {
       "supportsTablet": true
     },
